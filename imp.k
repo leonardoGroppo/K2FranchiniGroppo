@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
+// AsciaugsCVW apkhdbvc 
 
 require "builtins/string.k"
 require "io/io.k"
@@ -122,7 +123,6 @@ module IMP
   //INSPECT 
   rule INSPECT S1:String TALLYING I1:Int FOR ALL CHARACTERS => I1 =Int lengthString(S1)
   rule INSPECT S1:String TALLYING I1:Int FOR ALL S2:String => I1 =Int countAllOccurrences(S1,S2) when lengthString(S2) ==Int 1
-
   rule INSPECT S1:String REPLACING ALL S2:String BY S3:String => replaceAll(S1,S2,S3) requires (lengthString(S2) ==Int 1) && (lengthString(S3) ==Int 1)
 
   //STRING 
