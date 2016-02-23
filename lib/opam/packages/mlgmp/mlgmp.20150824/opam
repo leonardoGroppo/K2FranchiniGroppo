@@ -1,0 +1,17 @@
+opam-version: "1"
+maintainer: "dwight.guth@runtimeverification.com"
+build: [
+  ["sh" "-c" "rm -f *.cmo *.cmi *.cma *.cmxa *.o *.a *.cmx *.cmxs"]
+  ["patch" "-p2" "-i" "./patch"]
+  ["make"]
+  ["make" "install"]
+]
+remove: [["ocamlfind" "remove" "gmp"]]
+depends: [
+  "conf-gmp"
+  "conf-mpfr"
+  "ocamlfind"
+]
+conflicts: [
+  "apron"
+]

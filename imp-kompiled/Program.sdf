@@ -1,0 +1,153 @@
+module Program
+
+imports Common
+imports KBuiltinsBasic
+exports
+
+context-free syntax
+context-free priorities
+{
+    Int -> AExp {}
+    Id -> AExp {}
+    String -> AExp {}
+    AExp "/" AExp -> AExp {left, cons("AExp1404Syn")}
+    AExp "*" AExp -> AExp {left, cons("AExp1358Syn")}
+} > {
+    AExp "+" AExp -> AExp {left, cons("AExp150Syn")}
+    AExp "-" AExp -> AExp {left, cons("AExp128Syn")}
+}
+
+context-free priorities
+{
+    Bool -> BExp {}
+    AExp "<=" AExp -> BExp {cons("BExp1400Syn")}
+    AExp ">=" AExp -> BExp {cons("BExp1363Syn")}
+    AExp "==" AExp -> BExp {cons("BExp13Syn")}
+    "!" BExp -> BExp {cons("BExp1203Syn")}
+} > {
+    BExp "&&" BExp -> BExp {left, cons("BExp1338Syn")}
+    BExp "||" BExp -> BExp {left, cons("BExp1357Syn")}
+    BExp "==" BExp -> BExp {cons("BExp1278Syn")}
+}
+
+context-free priorities
+{
+    Block -> Stmt {}
+    Id "=" InsertDzAExp ";" -> Stmt {cons("Stmt1320Syn")}
+    "if" "(" InsertDzBExp ")" InsertDzBlock "else" Block -> Stmt {cons("Stmt1402Syn")}
+    "while" "(" InsertDzBExp ")" Block -> Stmt {cons("Stmt1352Syn")}
+    "INSPECT" InsertDzAExp "TALLYING" InsertDzAExp "FOR ALL" AExp -> Stmt {cons("Stmt182Syn")}
+    "INSPECT" InsertDzAExp "REPLACING ALL" InsertDzAExp "BY" AExp -> Stmt {cons("Stmt1366Syn")}
+} > {
+    Stmt Stmt -> Stmt {left, cons("Stmt1249Syn")}
+}
+
+context-free start-symbols
+DzString DzBool AExp AExps BExp String Int Stmt Float Bool Block Ids Id DzInt DzFloat K
+context-free syntax
+    "STRING" InsertDzAExp "DELIMITED BY" InsertDzAExp " " InsertDzAExp "DELIMITED BY" InsertDzAExp "INTO" InsertDzAExp "WITH POINTER" InsertDzAExp "END-STRING" -> Stmt {cons("Stmt1390Syn")}
+    "UNSTRING" InsertDzAExp "DELIMITED BY SPACE INTO" InsertDzAExp "WITH POINTER" InsertDzAExp "END-UNSTRING" -> Stmt {cons("Stmt132Syn")}
+    DzString -> String {}
+    "STRING" InsertDzAExp "DELIMITED BY" InsertDzAExp " " InsertDzAExp "DELIMITED BY" InsertDzAExp "INTO" InsertDzAExp "END-STRING" -> Stmt {cons("Stmt1328Syn")}
+    DzBool -> Bool {}
+    "(" InsertDzAExp ")" -> AExp {cons("AExp1Bracket")}
+    "INSPECT" InsertDzAExp "TALLYING" InsertDzAExp "FOR ALL CHARACTERS" -> Stmt {cons("Stmt188Syn")}
+    DzInt -> Int {}
+    {Id ","}* -> Ids {cons("Ids1ListSyn")}
+    "STRING" InsertDzAExp "DELIMITED BY" InsertDzAExp " " InsertDzAExp "DELIMITED BY" InsertDzAExp "INTO" InsertDzAExp "WITH POINTER" InsertDzAExp "ON OVERFLOW DISPLAY" InsertDzAExp "END-STRING" -> Stmt {cons("Stmt189Syn")}
+    {AExp ","}* -> AExps {cons("AExps1ListSyn")}
+    DzFloat -> Float {}
+    "UNSTRING" InsertDzAExp "DELIMITED BY SPACE INTO" InsertDzAExp "END-UNSTRING" -> Stmt {cons("Stmt1232Syn")}
+    "{" InsertDzStmt "}" -> Block {cons("Block162Syn")}
+    "{" "}" -> Block {cons("Block1388Syn")}
+    "int" InsertDzIds ";" -> Stmt {cons("Stmt165Syn")}
+    "(" InsertDzBExp ")" -> BExp {cons("BExp1Bracket")}
+    AExp -> InsertDzAExp
+    BExp -> InsertDzBExp
+    Block -> InsertDzBlock
+    Ids -> InsertDzIds
+    Stmt -> InsertDzStmt
+
+
+    DzDzString        -> DzString    {cons("DzString1Const")}
+    DzDzBool        -> DzBool    {cons("DzBool1Const")}
+    DzDzInt        -> DzInt    {cons("DzInt1Const")}
+    DzDzId        -> DzId    {cons("DzId1Const")}
+    DzDzFloat        -> DzFloat    {cons("DzFloat1Const")}
+
+
+
+%% start symbols subsorts
+    KItem        -> K
+    DzString        -> K
+    DzBool        -> K
+    AExp        -> K
+    BExp        -> K
+    String        -> K
+    Int        -> K
+    Stmt        -> K
+    Float        -> K
+    Bool        -> K
+    Block        -> K
+    Id        -> K
+    DzInt        -> K
+    DzFloat        -> K
+lexical syntax
+    "Infinity" -> DzDzFloat
+    "true" -> DzDzBool
+    "false" -> DzDzBool
+    "NaN" -> DzDzFloat
+
+
+    "INTO" -> IdDz {reject}
+    "INSPECT" -> IdDz {reject}
+    "while" -> IdDz {reject}
+    "else" -> IdDz {reject}
+    "TALLYING" -> IdDz {reject}
+    "BY" -> IdDz {reject}
+    "NaN" -> IdDz {reject}
+    "if" -> IdDz {reject}
+    "Infinity" -> IdDz {reject}
+    "false" -> IdDz {reject}
+    "int" -> IdDz {reject}
+    "true" -> IdDz {reject}
+    "UNSTRING" -> IdDz {reject}
+    "STRING" -> IdDz {reject}
+
+lexical restrictions
+    %% follow restrictions
+
+
+lexical syntax
+    [A-Za-z\_][A-Za-z0-9\_]* -> IdDz
+    "INTO" -> IdDz {reject}
+    "INSPECT" -> IdDz {reject}
+    "while" -> IdDz {reject}
+    "else" -> IdDz {reject}
+    "TALLYING" -> IdDz {reject}
+    "BY" -> IdDz {reject}
+    "NaN" -> IdDz {reject}
+    "if" -> IdDz {reject}
+    "Infinity" -> IdDz {reject}
+    "false" -> IdDz {reject}
+    "int" -> IdDz {reject}
+    "true" -> IdDz {reject}
+    "UNSTRING" -> IdDz {reject}
+    "STRING" -> IdDz {reject}
+    [\-\+]? [0-9]+ -> DzIntDz
+    [\+\-]?[0-9]+"."[0-9]+([eE][\+\-]?[0-9]+)?([fFdD]|([pP][0-9]+[xX][0-9]+))? -> DzFloatDz
+    [\+\-]?"Infinity"([fFdD]|([pP][0-9]+[xX][0-9]+))? -> DzFloatDz
+    "Infinity" -> DzFloatDz {reject}
+    "NaN"([fFdD]|([pP][0-9]+[xX][0-9]+))? -> DzFloatDz
+    "NaN" -> DzFloatDz {reject}
+    "\"" ((~[\"\n\r\\]) | (((([\\][nrtf\"\\]) | ([\\][x][0-9a-fA-F][0-9a-fA-F])) | ([\\][u][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])) | ([\\][U][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])))* "\"" -> DzStringDz
+context-free syntax
+    DzStringDz -> DzString {cons("DzString1Const")}
+    IdDz -> Id {cons("Id1Const")}
+    DzIntDz -> DzInt {cons("DzInt1Const")}
+    DzFloatDz -> DzFloat {cons("DzFloat1Const")}
+
+
+context-free restrictions
+    Id -/- [A-Za-z0-9\_]
+    DzInt -/-  [0-9]
