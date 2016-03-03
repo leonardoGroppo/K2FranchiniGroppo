@@ -10,8 +10,8 @@ context-free priorities
     Int -> AExp {}
     Id -> AExp {}
     String -> AExp {}
-    AExp "/" AExp -> AExp {left, cons("AExp1404Syn")}
-    AExp "*" AExp -> AExp {left, cons("AExp1358Syn")}
+    AExp "/" AExp -> AExp {left, cons("AExp1405Syn")}
+    AExp "*" AExp -> AExp {left, cons("AExp1360Syn")}
 } > {
     AExp "+" AExp -> AExp {left, cons("AExp150Syn")}
     AExp "-" AExp -> AExp {left, cons("AExp128Syn")}
@@ -20,24 +20,24 @@ context-free priorities
 context-free priorities
 {
     Bool -> BExp {}
-    AExp "<=" AExp -> BExp {cons("BExp1400Syn")}
-    AExp ">=" AExp -> BExp {cons("BExp1363Syn")}
+    AExp "<=" AExp -> BExp {cons("BExp1402Syn")}
+    AExp ">=" AExp -> BExp {cons("BExp1365Syn")}
     AExp "==" AExp -> BExp {cons("BExp13Syn")}
-    "!" BExp -> BExp {cons("BExp1203Syn")}
+    "!" BExp -> BExp {cons("BExp1202Syn")}
 } > {
-    BExp "&&" BExp -> BExp {left, cons("BExp1338Syn")}
-    BExp "||" BExp -> BExp {left, cons("BExp1357Syn")}
-    BExp "==" BExp -> BExp {cons("BExp1278Syn")}
+    BExp "&&" BExp -> BExp {left, cons("BExp1339Syn")}
+    BExp "||" BExp -> BExp {left, cons("BExp1358Syn")}
+    BExp "==" BExp -> BExp {cons("BExp1279Syn")}
 }
 
 context-free priorities
 {
     Block -> Stmt {}
-    Id "=" InsertDzAExp ";" -> Stmt {cons("Stmt1320Syn")}
-    "if" "(" InsertDzBExp ")" InsertDzBlock "else" Block -> Stmt {cons("Stmt1402Syn")}
-    "while" "(" InsertDzBExp ")" Block -> Stmt {cons("Stmt1352Syn")}
+    Id "=" InsertDzAExp ";" -> Stmt {cons("Stmt1323Syn")}
+    "if" "(" InsertDzBExp ")" InsertDzBlock "else" Block -> Stmt {cons("Stmt1403Syn")}
+    "while" "(" InsertDzBExp ")" Block -> Stmt {cons("Stmt1353Syn")}
     "INSPECT" InsertDzAExp "TALLYING" InsertDzAExp "FOR ALL" AExp -> Stmt {cons("Stmt182Syn")}
-    "INSPECT" InsertDzAExp "REPLACING ALL" InsertDzAExp "BY" AExp -> Stmt {cons("Stmt1366Syn")}
+    "INSPECT" InsertDzAExp "REPLACING ALL" InsertDzAExp "BY" AExp -> Stmt {cons("Stmt1368Syn")}
 } > {
     Stmt Stmt -> Stmt {left, cons("Stmt1249Syn")}
 }
@@ -45,24 +45,26 @@ context-free priorities
 context-free start-symbols
 DzString DzBool AExp AExps BExp String Int Stmt Float Bool Block Ids Id DzInt DzFloat K
 context-free syntax
-    "STRING" InsertDzAExp "DELIMITED BY" InsertDzAExp " " InsertDzAExp "DELIMITED BY" InsertDzAExp "INTO" InsertDzAExp "WITH POINTER" InsertDzAExp "END-STRING" -> Stmt {cons("Stmt1390Syn")}
+    "String" InsertDzAExp ";" -> Stmt {cons("Stmt1237Syn")}
     "UNSTRING" InsertDzAExp "DELIMITED BY SPACE INTO" InsertDzAExp "WITH POINTER" InsertDzAExp "END-UNSTRING" -> Stmt {cons("Stmt132Syn")}
     DzString -> String {}
-    "STRING" InsertDzAExp "DELIMITED BY" InsertDzAExp " " InsertDzAExp "DELIMITED BY" InsertDzAExp "INTO" InsertDzAExp "END-STRING" -> Stmt {cons("Stmt1328Syn")}
+    "STRING" InsertDzAExp "DELIMITED BY" InsertDzAExp InsertDzAExp "DELIMITED BY" InsertDzAExp "INTO" InsertDzAExp "WITH POINTER" InsertDzAExp "END-STRING" -> Stmt {cons("Stmt1304Syn")}
     DzBool -> Bool {}
+    "UNSTRING" InsertDzAExp "DELIMITED BY SPACE INTO" InsertDzAExps "END-UNSTRING" -> Stmt {cons("Stmt1242Syn")}
     "(" InsertDzAExp ")" -> AExp {cons("AExp1Bracket")}
     "INSPECT" InsertDzAExp "TALLYING" InsertDzAExp "FOR ALL CHARACTERS" -> Stmt {cons("Stmt188Syn")}
     DzInt -> Int {}
     {Id ","}* -> Ids {cons("Ids1ListSyn")}
-    "STRING" InsertDzAExp "DELIMITED BY" InsertDzAExp " " InsertDzAExp "DELIMITED BY" InsertDzAExp "INTO" InsertDzAExp "WITH POINTER" InsertDzAExp "ON OVERFLOW DISPLAY" InsertDzAExp "END-STRING" -> Stmt {cons("Stmt189Syn")}
     {AExp ","}* -> AExps {cons("AExps1ListSyn")}
+    "STRING " InsertDzAExp "DELIMITED BY" InsertDzAExp " " InsertDzAExp "DELIMITED BY" InsertDzAExp "INTO" InsertDzAExp "WITH POINTER" InsertDzAExp "ON OVERFLOW DISPLAY" InsertDzAExp "END-STRING" -> Stmt {cons("Stmt1359Syn")}
+    "STRING" InsertDzAExp "DELIMITED BY" InsertDzAExp InsertDzAExp "DELIMITED BY" InsertDzAExp "INTO" InsertDzAExp "END-STRING" -> Stmt {cons("Stmt1260Syn")}
     DzFloat -> Float {}
-    "UNSTRING" InsertDzAExp "DELIMITED BY SPACE INTO" InsertDzAExp "END-UNSTRING" -> Stmt {cons("Stmt1232Syn")}
     "{" InsertDzStmt "}" -> Block {cons("Block162Syn")}
-    "{" "}" -> Block {cons("Block1388Syn")}
+    "{" "}" -> Block {cons("Block1390Syn")}
     "int" InsertDzIds ";" -> Stmt {cons("Stmt165Syn")}
     "(" InsertDzBExp ")" -> BExp {cons("BExp1Bracket")}
     AExp -> InsertDzAExp
+    AExps -> InsertDzAExps
     BExp -> InsertDzBExp
     Block -> InsertDzBlock
     Ids -> InsertDzIds
@@ -101,6 +103,7 @@ lexical syntax
 
     "INTO" -> IdDz {reject}
     "INSPECT" -> IdDz {reject}
+    "String" -> IdDz {reject}
     "while" -> IdDz {reject}
     "else" -> IdDz {reject}
     "TALLYING" -> IdDz {reject}
@@ -122,6 +125,7 @@ lexical syntax
     [A-Za-z\_][A-Za-z0-9\_]* -> IdDz
     "INTO" -> IdDz {reject}
     "INSPECT" -> IdDz {reject}
+    "String" -> IdDz {reject}
     "while" -> IdDz {reject}
     "else" -> IdDz {reject}
     "TALLYING" -> IdDz {reject}

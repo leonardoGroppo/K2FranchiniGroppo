@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2015 K Team. All Rights Reserved.
-// AsciaugsCVW apkhdbvc 
 
 require "builtins/string.k"
 require "io/io.k"
@@ -30,6 +29,7 @@ module IMP-SYNTAX
   syntax Stmt  ::= Block
                   | Id "=" AExp ";"                                                                       [strict(2)] 
                   | "int" Ids ";"
+                  | "String" AExp ";"
                   | "if" "(" BExp ")"
                    Block "else" Block                                                                     [strict(1)]
                   | "while" "(" BExp ")" Block
@@ -38,15 +38,15 @@ module IMP-SYNTAX
         				  | "INSPECT" AExp "TALLYING" AExp "FOR ALL" AExp                                         [seqstrict]
         				  | "INSPECT" AExp "REPLACING ALL" AExp "BY" AExp                                         [seqstrict]
 
-        				  | "STRING" AExp "DELIMITED BY" AExp " " AExp "DELIMITED BY" AExp "INTO" AExp "END-STRING" [strict]
-        				  | "STRING" AExp "DELIMITED BY" AExp " " AExp "DELIMITED BY" AExp "INTO" AExp 
+        				  | "STRING" AExp "DELIMITED BY" AExp AExp "DELIMITED BY" AExp "INTO" AExp "END-STRING" [strict]
+        				  | "STRING" AExp "DELIMITED BY" AExp AExp "DELIMITED BY" AExp "INTO" AExp 
         				  	"WITH POINTER" AExp 
         				  	"END-STRING" [strict]
-        				  | "STRING" AExp "DELIMITED BY" AExp " " AExp "DELIMITED BY" AExp "INTO" AExp 
+        				  | "STRING " AExp "DELIMITED BY" AExp " " AExp "DELIMITED BY" AExp "INTO" AExp 
         					  "WITH POINTER" AExp "ON OVERFLOW DISPLAY" AExp 
         					  "END-STRING" [strict]
 
-                  | "UNSTRING" AExp "DELIMITED BY SPACE INTO" AExp //List
+                  | "UNSTRING" AExp "DELIMITED BY SPACE INTO" AExps
                     "END-UNSTRING" [strict]
                   | "UNSTRING" AExp "DELIMITED BY SPACE INTO" AExp
                     "WITH POINTER" AExp 
@@ -71,6 +71,7 @@ module IMP
 		<k> $PGM:K </k>
 		<env> .Map </env> 
 		<store> .Map </store > 
+    <support> .Map </support> // cella contenente le variabili di supporto per la realizzazione della semantica
 		<streams >
 			<in stream="stdin"> .List </in>
 			<out stream="stdout"> .List </out> 
@@ -108,10 +109,15 @@ module IMP
   rule {S} => S  [structural]
 
 // Stmt
-  //variables declaration
+  //int variabledeclaration
   rule <k> X = I:Int; => . ...</k> 
   <env>... X |-> N ...</env>
   <store>... N |-> (_ => I) ...</store>
+
+  //string variable declaration
+  rule <k> X = S:String; => . ...</k> 
+  <env>... X |-> N ...</env>
+  <store>... N |-> (_ => S) ...</store>
   
   rule S1:Stmt S2:Stmt => S1 ~> S2                                          [structural]
 
@@ -121,45 +127,53 @@ module IMP
   rule while (B) S => if (B) { S while (B) S } else {}                        [structural]
 
   //INSPECT 
-  rule INSPECT S1:String TALLYING I1:Int FOR ALL CHARACTERS => I1 =Int lengthString(S1)
+  rule <k>... INSPECT S1:String TALLYING I1:Int FOR ALL CHARACTERS => I1 =Int lengthString(S1) ...</k>
+  <env>... I1 |-> N ...</env>
+  <store>... N |-> (_ => lengthString(S1)) ...</store>
+  /*
   rule INSPECT S1:String TALLYING I1:Int FOR ALL S2:String => I1 =Int countAllOccurrences(S1,S2) when lengthString(S2) ==Int 1
   rule INSPECT S1:String REPLACING ALL S2:String BY S3:String => replaceAll(S1,S2,S3) requires (lengthString(S2) ==Int 1) && (lengthString(S3) ==Int 1)
 
   //STRING 
-  rule STRING S1:String DELIMITED BY Del1:String S2:String DELIMITED BY Del2:String INTO S3:String END-STRING => 
-		if( ( Del1 ==String "SPACE" || Del1 ==String "SIZE" ) && ( Del2 ==String "SPACE" || Del2 ==String "SIZE" ) )
-		    then 
-				if(Del1 ==String "SPACE")findChar(S1," ",Pos) ~> S1 =String substrString(S1,0,Pos)
-				if(Del2 ==String "SPACE")findChar(S2," ",Pos) ~> S2 =String substrString(S2,0,Pos)
-				~> S3 =String S1 +String S2;
+  rule <support>... Pos |-> 0 ...</support>
+  <k>...
+    STRING S1:String DELIMITED BY Del1:String S2:String DELIMITED BY Del2:String INTO S3:String END-STRING =>
+    if(( Del1 ==String "SPACE" || Del1 ==String "SIZE" ) && ( Del2 ==String "SPACE" || Del2 ==String "SIZE" )){
+        if( Del1 ==String "SPACE") { findChar(S1," ",Pos) ~> S1 =String substrString(S1,0,Pos) }
+        if( Del2 ==String "SPACE") { findChar(S2," ",Pos) ~> S2 =String substrString(S2,0,Pos) }
+        ~> S3 =String S1 +String S2 }
+  ...</k>
 
   rule STRING S1:String DELIMITED BY Del1:String S2:String DELIMITED BY Del2:String INTO S3:String WITH POINTER I:Int END-STRING => 
-		if( ( Del1 ==String "SPACE" || Del1 ==String "SIZE" ) && ( Del2 ==String "SPACE" || Del2 ==String "SIZE" ) )
-			{	if(Del1 ==String "SPACE") { findChar(S1," ", Pos) ~> S1 = substrString(S1,0,Pos) }
-				if(Del2 ==String "SPACE") { findChar(S2," ",Pos) ~> S2 = substrString(S2,0,Pos) }
-				S3 =String S1 +String S2 ~> I =Int lengthString(S3) }
+    if( ( Del1 ==String "SPACE" || Del1 ==String "SIZE" ) && ( Del2 ==String "SPACE" || Del2 ==String "SIZE" ) )
+      { if(Del1 ==String "SPACE") { findChar(S1," ", Pos) ~> S1 = substrString(S1,0,Pos) }
+        if(Del2 ==String "SPACE") { findChar(S2," ",Pos) ~> S2 = substrString(S2,0,Pos) }
+        S3 =String S1 +String S2 ~> I =Int lengthString(S3) }
 
   rule STRING S1:String DELIMITED BY Del1:String S2:String DELIMITED BY Del2:String INTO S3:String WITH POINTER I:Int ON OVERFLOW DISPLAY S4:String END-STRING => 
-		if((Del1 ==String "SPACE" || Del1 ==String "SIZE") && (Del2 ==String "SPACE" || Del2 ==String "SIZE"))
-			{	if(Del1 ==String "SPACE") { findChar(S1," ",Pos) S1 =String substrString(S1,0,Pos) }
-				if(Del2 ==String "SPACE") { findChar(S2," ",Pos) S2 =String substrString(S2,0,Pos) }
-				S3length =String lengthString(S3) ~> S3 =String S1 +String S2 ~> I =String lengthString(S3) 
-			}
-		requires I >Int S3
-				
+    if((Del1 ==String "SPACE" || Del1 ==String "SIZE") && (Del2 ==String "SPACE" || Del2 ==String "SIZE"))
+      { if(Del1 ==String "SPACE") { findChar(S1," ",Pos) S1 =String substrString(S1,0,Pos) }
+        if(Del2 ==String "SPACE") { findChar(S2," ",Pos) S2 =String substrString(S2,0,Pos) }
+        S3length =String lengthString(S3) ~> S3 =String S1 +String S2 ~> I =String lengthString(S3) 
+      }
+    requires I >Int S3
+        
   //UNSTRING
   rule UNSTRING S1:String DELIMITED BY SPACE INTO List END-UNSTRING =>
 
     StartPos =Int 0 ~> Index =Int 0 ~> 
-	while( Index <Int size(List) ){
-      //cerco la posizione dello spazio 								 splitto                          					riaggiusto l'indice per cercare lo spazio successivo
+  while( Index <Int size(List) ){
+      //cerco la posizione dello spazio                  splitto                                    riaggiusto l'indice per cercare lo spazio successivo
       findChar(substrString(S1,StartPos,stringLength(S1))," ",EndPos) ~> List[i] =String substrString(S1,StartPos,EndPos) ~> StartPos =Int EndPos ~> i =Int i +Int 1
     }
-				
-// Pgm
-  rule <k> int (X,Xs => Xs); ...</k>
-  <env> Rho => Rho[X <- !N:Int] ...</env>
+*/  
+  
+ // Pgm
+ rule <k> var(X:Id, X1:Ids=>X1); ...</k>
+  <env> Rho:Map => Rho[X <- !N:Int] ...</env>
   <store>... .Map => !N |-> 0 ...</store>
-  rule int .Ids; => . [structural]
+  when notBool(X in keys(Rho))
+ 
+ rule int .Ids; => . [structural]
 
 endmodule
