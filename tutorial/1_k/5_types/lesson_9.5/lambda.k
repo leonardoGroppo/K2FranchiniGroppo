@@ -1,9 +1,11 @@
-// Copyright (c) 2013-2016 K Team. All Rights Reserved.
+// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+require "modules/unification.k"
+require "modules/substitution.k"
 
-require "unification.k"
-require "substitution.k"
+module LAMBDA
+  imports UNIFICATION
+  imports SUBSTITUTION
 
-module LAMBDA-SYNTAX
   syntax Exp ::= Int | Bool | Id
                | "(" Exp ")"                      [bracket]
                | Exp Exp                          [strict, left]
@@ -22,14 +24,7 @@ module LAMBDA-SYNTAX
                 | "(" Type ")"                    [bracket]
 
   syntax Exp ::= Type
-endmodule
-
-module LAMBDA
-  imports LAMBDA-SYNTAX
-  imports UNIFICATION
-  imports SUBSTITUTION
-
-  syntax KVariable ::= Id
+  syntax Variable ::= Id
   syntax KResult ::= Type
 
   configuration <k color="green"> $PGM:Exp </k>
@@ -43,19 +38,18 @@ module LAMBDA
   rule int + int => int
   rule int <= int => bool
 
-  syntax Exp ::= Exp "->" Exp                  [strict]
-  rule <k> lambda X:Id . E => ?T:Type -> E ~> tenv(TEnv) ...</k>
+  rule <k> lambda X:Id . E:Exp => E ~> ?T:Type -> HOLE ~> tenv(TEnv) ...</k>
        <tenv> TEnv => TEnv[X <- ?T] </tenv>
-
+  rule T2:Type ~> T1:Type -> HOLE => T1 -> T2
   rule (T1:Type -> T2:Type) T1 => T2
   rule if bool then T:Type else T => T
 
   syntax TypeSchema ::= "(" "forall" Set ")" Type
   rule <k> let X = T:Type in E => E ~> tenv(TEnv) ...</k>
        <tenv> TEnv
-        => TEnv[X <- (forall #metaKVariables(T) -Set #metaKVariables(tenv(TEnv))) T]
+        => TEnv[X <- (forall #metaVariables(T) -Set #metaVariables(tenv(TEnv))) T]
        </tenv>
-  rule <k> X:Id => #renameMetaKVariables(T, Tvs) ...</k>
+  rule <k> X:Id => #rename(T, Tvs) ...</k>
        <tenv>... X |-> (forall Tvs) T ...</tenv>
 
   rule letrec F X = E in E' => let F = mu F . lambda X . E in E'        [macro]
@@ -63,5 +57,5 @@ module LAMBDA
        <tenv> TEnv => TEnv[X <- ?T] </tenv>
 
   syntax KItem ::= tenv(Map)
-  rule <k> T:Type ~> tenv(TEnv) => T ...</k>  <tenv> _ => TEnv </tenv>
+  rule <k> T:Type ~> (tenv(TEnv) => .) ...</k>  <tenv> _ => TEnv </tenv>
 endmodule

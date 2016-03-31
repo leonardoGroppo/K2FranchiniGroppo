@@ -1,5 +1,4 @@
-// Copyright (c) 2014-2016 K Team. All Rights Reserved.
-
+// Copyright (c) 2014-2015 K Team. All Rights Reserved.
 /*!
 \title{SIMPLE --- Untyped}
 \author{Grigore Ro\c{s}u and Traian Florin \c{S}erb\u{a}nu\c{t}\u{a}
@@ -57,7 +56,9 @@ intended to be one of the first non-trivial definitions that the new
 user of \K sees.  We recommend the beginner user to first check the
 language definitions discussed in the \K tutorial.} */
 
+
 module SIMPLE-UNTYPED-SYNTAX
+  imports BUILTIN-SYNTAX-HOOKS
 
 /*@ \section{Syntax}
 We start by defining the SIMPLE syntax.  The language constructs discussed
@@ -272,7 +273,6 @@ languages, we finally tell the tool that values are \K results. */
   syntax Vals ::= List{Val,","}
   syntax Exp ::= Val
   syntax KResult ::= Val
-                   | Vals  // TODO: should not need this
 
 /*@ The inclusion of values in expressions follows the methodology of
 syntactic definitions (like, e.g., in SOS): extend the syntax of the language
@@ -320,24 +320,24 @@ to the \K tool, as indicated by the \textit{\$PGM} variable, followed by the
   configuration <T color="red">
                   <threads color="orange">
                     <thread multiplicity="*" color="yellow">
-                      <k color="green"> $PGM:Stmts ~> execute </k>
-                    //<br/> // TODO(KORE): support latex annotations #1799
+                      <k color="green"> ($PGM:Stmts ~> execute) </k>
+                      <br/>
                       <control color="cyan">
                         <fstack color="blue"> .List </fstack>
                         <xstack color="purple"> .List </xstack>
                       </control>
-                    //<br/> // TODO(KORE): support latex annotations #1799
+                      <br/>
                       <env color="violet"> .Map </env>
                       <holds color="black"> .Map </holds>
                       <id color="pink"> 0 </id>
                     </thread>
                   </threads>
-                //<br/> // TODO(KORE): support latex annotations #1799
+                  <br/>
                   <genv color="pink"> .Map </genv>
                   <store color="white"> .Map </store>
                   <busy color="cyan"> .Set </busy>
                   <terminated color="red"> .Set </terminated>
-                //<br/> // TODO(KORE): support latex annotations #1799
+                  <br/>
                   <in color="magenta" stream="stdin"> .List </in>
                   <out color="brown" stream="stdout"> .List </out>
                   <nextLoc color="gray"> 0 </nextLoc>
@@ -414,7 +414,7 @@ declarations. */
        <store>... .Map => L |-> array(L +Int 1, N)
                           (L +Int 1) ... (L +Int N) |-> undefined ...</store>
        <nextLoc> L => L +Int 1 +Int N </nextLoc>
-    requires N >=Int 0
+    when N >=Int 0
 
 /*@ SIMPLE allows multi-dimensional arrays.  For semantic simplicity, we
 desugar them all into uni-dimensional arrays by code transformation.
@@ -535,8 +535,8 @@ become values of expected sorts: */
   rule Str1 + Str2 => Str1 +String Str2
   rule I1 - I2 => I1 -Int I2
   rule I1 * I2 => I1 *Int I2
-  rule I1 / I2 => I1 /Int I2 requires I2 =/=K 0
-  rule I1 % I2 => I1 %Int I2 requires I2 =/=K 0
+  rule I1 / I2 => I1 /Int I2 when I2 =/=K 0
+  rule I1 % I2 => I1 %Int I2 when I2 =/=K 0
   rule - I => 0 -Int I
   rule I1 < I2 => I1 <Int I2
   rule I1 <= I2 => I1 <=Int I2
@@ -860,7 +860,7 @@ configuration.  This is part of \K's configuration abstraction mechanism. */
          <k> spawn S => !T:Int ...</k>
          <env> Env </env>
        ...</thread>
-       (.Bag => <thread>...
+       (. => <thread>...
                <k> S </k>
                <env> Env </env>
                <id> !T </id>
@@ -881,7 +881,7 @@ by a thread.  The unique identifier of the terminated thread is also collected
 into the \textsf{terminated} cell, so the \texttt{join} construct knows which
 threads have terminated. */
 
-  rule (<thread>... <k>.</k> <holds>H</holds> <id>T</id> ...</thread> => .Bag)
+  rule (<thread>... <k>.</k> <holds>H</holds> <id>T</id> ...</thread> => .)
        <busy> Busy => Busy -Set keys(H) </busy>
        <terminated>... .Set => SetItem(T) ...</terminated>
 
@@ -907,7 +907,7 @@ by the two rules below: */
   rule <k> acquire V:Val; => . ...</k>
        <holds>... .Map => V |-> 0 ...</holds>
        <busy> Busy (.Set => SetItem(V)) </busy>
-    requires (notBool(V in Busy))  [acquire]
+    when (notBool(V in Busy))  [acquire]
 
   rule <k> acquire V; => . ...</k>
        <holds>... V:Val |-> (N => N +Int 1) ...</holds>
@@ -923,7 +923,7 @@ so other threads can acquire it if they need to. */
 
   rule <k> release V:Val; => . ...</k>
        <holds>... V |-> (N => N -Int 1) ...</holds>
-    requires N >Int 0
+    when N >Int 0
 
   rule <k> release V; => . ...</k> <holds>... V:Val |-> 0 => .Map ...</holds>
        <busy>... SetItem(V) => .Set ...</busy>
@@ -966,7 +966,7 @@ The operation below is straightforward.  Note that we tag it with the same
 both rules will be considered transitions when we include the \texttt{lookup}
 tag in the transition option of \texttt{kompile}. */
 
-  syntax Exp ::= lookup(Int)
+  syntax KItem ::= lookup(Int)
   rule <k> lookup(L) => V ...</k> <store>... L |-> V:Val ...</store>  [lookup]
 
 /*@ \subsubsection{Environment recovery}
@@ -1045,8 +1045,8 @@ value: */
 
   syntax Map ::= Int "..." Int "|->" K
     [function, latex({#1}\ldots{#2}\mapsto{#3})]
-  rule N...M |-> _ => .Map  requires N >Int M
-  rule N...M |-> K => N |-> K (N +Int 1)...M |-> K  requires N <=Int M
+  rule N...M |-> _ => .Map  when N >Int M
+  rule N...M |-> K => N |-> K (N +Int 1)...M |-> K  when N <=Int M
 
 /*@ The semantics of SIMPLE is now complete.  Make sure you kompile the
 definition with the right options in order to generate the desired model.

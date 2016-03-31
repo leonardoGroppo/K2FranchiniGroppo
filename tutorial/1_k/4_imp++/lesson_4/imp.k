@@ -1,5 +1,4 @@
-// Copyright (c) 2014-2016 K Team. All Rights Reserved.
-
+// Copyright (c) 2014-2015 K Team. All Rights Reserved.
 module IMP-SYNTAX
   syntax AExp  ::= Int | String | Id
                  | "++" Id
@@ -20,13 +19,13 @@ module IMP-SYNTAX
                    Block "else" Block         [strict(1)]
                  | "while" "(" BExp ")" Block
                  | "int" Ids ";"
-                 | "print" "(" AExps ")" ";"
+                 | "print" "(" AExps ")" ";"  [strict]
                  | "halt" ";"
                  > "spawn" Stmt
                  > Stmt Stmt                  [left]
 
-  syntax Ids   ::= List{Id,","}
-  syntax AExps ::= List{AExp,","}
+  syntax Ids   ::= List{Id,","}               [strict]
+  syntax AExps ::= List{AExp,","}             [strict]
 endmodule
 
 
@@ -77,10 +76,7 @@ module IMP
   rule int .Ids; => .  [structural]
 
   syntax Printable ::= Int | String
-/* currently it is necessary to subsort Printable to AExp,
-  but future K should be able to infer that automatically. */
   syntax AExp ::= Printable
-  context print(HOLE:AExp, _);
   rule <k> print(P:Printable,AEs => AEs); ...</k>
        <out>... .List => ListItem(P) </out>
   rule print(.AExps); => .  [structural]

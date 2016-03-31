@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 K Team. All Rights Reserved.
+// Copyright (c) 2015 K Team. All Rights Reserved.
 
 // Module defining only the sorts K and KString, useful for modularity
 module SORT-K
@@ -34,9 +34,7 @@ module KAST
                  | ".KList"          [klabel(#EmptyKList), hook(org.kframework.kore.EmptyKList)]
                  | ".::KList"        [klabel(#EmptyKList), hook(org.kframework.kore.EmptyKList)]
                  | KList "," KList   [klabel(#KList), left, assoc, unit(#EmptyKList), hook(org.kframework.kore.KList), prefer]
-//TODO(dwightguth): there is some kind of weird issue with this production which is causing AddEmptyLists to behave incorrectly.
-// we need to fix this issue so we can add this production back.
-//                 | KList ",," KList  [klabel(#KList), left, assoc, unit(#EmptyKList), hook(org.kframework.kore.KList), prefer]
+                 | KList ",," KList  [klabel(#KList), left, assoc, unit(#EmptyKList), hook(org.kframework.kore.KList), prefer]
 endmodule
 
 
@@ -45,18 +43,17 @@ module KSEQ
   imports KAST
   imports K-TOP-SORT
   syntax KBott ::= ".K"      [klabel(#EmptyK), hook(org.kframework.kore.EmptyK)]
-                 | "."       [klabel(#EmptyK), hook(org.kframework.kore.EmptyK)]
                  | ".::K"    [klabel(#EmptyK), hook(org.kframework.kore.EmptyK)]
                  | K "~>" K  [klabel(#KSequence), left, assoc, unit(#EmptyK), hook(org.kframework.kore.KSequence)]
   syntax left #KSequence
-  syntax KBott     ::= "(" K ")"    [bracket]
+  syntax KBott     ::= "`" K "`"    [bracket]
 endmodule
 
 
 // To be used when parsing/pretty-printing symbolic configurations
 module KSEQ-SYMBOLIC
   imports KSEQ
-  syntax #KVariable ::= r"(?<![A-Za-z0-9_\\$!\\?])(\\!|\\?)?([A-Z][A-Za-z0-9'_]*|_)"   [token, autoReject, hook(org.kframework.kore.KVariable)]
+  syntax #KVariable  ::= r"(?<![A-Za-z0-9_\\$!\\?])(\\!|\\?)?([A-Z][A-Za-z0-9'_]*|_)"   [token, autoReject, hook(org.kframework.kore.KVariable)]
   syntax KConfigVar ::= r"(?<![A-Za-z0-9_\\$!\\?])(\\$)([A-Z][A-Za-z0-9'_]*)"          [token, autoReject]
   syntax KBott      ::= #KVariable
   syntax KBott      ::= KConfigVar
@@ -71,7 +68,6 @@ module KCELLS
                | ".Bag"   [klabel(#cells)]
                | ".::Bag" [klabel(#cells)]
                | Cell
-  syntax Bag ::= "(" Bag ")" [bracket]
   syntax K ::= Bag
   syntax Bag ::= KBott
 endmodule
@@ -161,6 +157,7 @@ module PROGRAM-LISTS
   // if this module is imported, the parser automatically
   // replaces the default productions for lists:
   // Es ::= E "," Es [userList("*"), klabel('_,_)]
+  //      | E        [userList("*")]
   //      | ".Es"    [userList("*"), klabel('.Es)]
   // into a series of productions more suitable for programs:
   // Es#Terminator ::= ""      [klabel('.Es)]

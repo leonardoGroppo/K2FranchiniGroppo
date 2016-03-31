@@ -1,6 +1,6 @@
-// Copyright (c) 2013-2016 K Team. All Rights Reserved.
-require "../builtins/string.k"
-require "../builtins/list.k"
+// Copyright (c) 2013-2015 K Team. All Rights Reserved.
+require "builtins/string.k"
+require "builtins/list.k"
 
 module K-IO
   imports LIST

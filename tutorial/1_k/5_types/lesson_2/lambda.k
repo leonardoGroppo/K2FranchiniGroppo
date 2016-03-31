@@ -1,6 +1,5 @@
-// Copyright (c) 2012-2016 K Team. All Rights Reserved.
-
-require "substitution.k"
+// Copyright (c) 2012-2015 K Team. All Rights Reserved.
+require "modules/substitution.k"
 
 module LAMBDA
   imports SUBSTITUTION
@@ -16,13 +15,14 @@ module LAMBDA
 
   syntax Exp ::= Type
 
-  syntax KVariable ::= Id
+  syntax Variable ::= Id
 
   syntax KResult ::= Type
 
   syntax Exp ::= Exp "->" Exp                  [strict]
-
-  rule lambda X : T . E => T -> E[T/X]
+  // TODO (AndreiS): fix sort inference for E
+  // rule lambda X : T . E => T -> E[T/X]
+  rule lambda X : T . E:Exp => T -> E[T/X]
   rule (T1 -> T2) T1 => T2
 
   syntax Exp ::= Int | Bool
@@ -48,5 +48,5 @@ module LAMBDA
                | "mu" Id ":" Type "." Exp                             [binder]
   rule letrec F : T1  X : T2 = E in E'
     => let F : T1 = mu F : T1 . lambda X : T2 . E in E'               [macro]
-  rule mu X : T . E => (T -> T) (E[T/X]):>Exp  // TODO: casting should not be needed
+  rule mu X : T . E => (T -> T) (E[T/X])
 endmodule

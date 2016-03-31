@@ -1,5 +1,4 @@
-<!-- Copyright (c) 2012-2016 K Team. All Rights Reserved. -->
-
+<!-- Copyright (c) 2012-2014 K Team. All Rights Reserved. -->
 ### Generating Documentation; Latex Attributes
 
 [MOVIE [3'13"]](http://youtu.be/ULXA4e_6-DY)
@@ -9,13 +8,17 @@ language definitions.  We also learn how to use Latex attributes to control
 the formatting of language constructs, particularly of ones which have a
 mathematical flavor and we want to display accordingly.
 
-To generate PDF documentation, all we have to do is to call the `kdoc` command
-in the folder where the kompiled definition is.  This command generates a
-`lambda.pdf` file, which contains the formatted K definition.
+To generate PDF documentation, all we have to do is to call kompile with the
+option --pdf:
+
+    kompile lambda --pdf   (this generates PDF documentation)
+
+This command generates a lambda.pdf file, which contains the formatted K
+definition.
 
 Open this file using your favorite PDF reader.  The syntactic details are not
 shown in the generated PDF, because we typically want to focus on semantics at
-this stage.  The main notational difference between the original `.k` and the
+this stage.  The main notational difference between the original .k and the
 generated PDF is how rules are displayed.  In the PDF, the rule `left => right`
 is replaced by its representation in K (see papers on K), which is harder to
 write in ASCII.  Specifically, `left` is underlined and `right` is written
@@ -35,14 +38,16 @@ attribute to the production defining the construct in question, following
 the Latex syntax for defining new commands (or macros).
 
 In our case, we associate the attribute `latex(\lambda{#1}.{#2})` to the
-production declaring the lambda abstraction (recall that in Latex, `#n` refers
+production declaring the lambda abstraction (recall that in Latex, #n refers
 to the n-th argument of the defined new command).
 
-Let us now compile the new `lambda.k` using the option `--pdf`, and note how
-the latex attribute is being used in the produced output.
+Let us now compile the new lambda.k using the option --pdf, and note how the
+latex attribute is being used in the produced output.
 
-Note that it is also possible to generates HTML documentation.  See
-`kdoc --help` for the exact command line options.
+Note that there is also an `--html` option to kompile, which generates HTML
+documentation:
+
+    kompile lambda --html  (this generates HTML documentation)
 
 We will later see, in Lesson 9, that we can add arbitrarily complex Latex
 comments and headers to our language definitions, which give us maximum

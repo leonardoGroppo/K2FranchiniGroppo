@@ -1,5 +1,4 @@
-// Copyright (c) 2013-2016 K Team. All Rights Reserved.
-
+// Copyright (c) 2013-2015 K Team. All Rights Reserved.
 module LAMBDA
   syntax Exp ::= Int | Bool | Id
                | "(" Exp ")"                        [bracket]
@@ -50,3 +49,4 @@ module LAMBDA
 
   rule <k> T:Type ~> (env(TEnv:Map) => .) ...</k> <tenv> _:Map => TEnv </tenv>
 endmodule
+

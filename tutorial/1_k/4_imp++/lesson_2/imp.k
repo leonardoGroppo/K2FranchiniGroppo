@@ -1,10 +1,9 @@
-// Copyright (c) 2014-2016 K Team. All Rights Reserved.
-
+// Copyright (c) 2014-2015 K Team. All Rights Reserved.
 module IMP-SYNTAX
   syntax AExp  ::= Int | String | Id
                  | "++" Id
                  | "read" "(" ")"
-                 > AExp "/" AExp              [left, strict, division]
+                 > AExp "/" AExp              [left, strict]
                  > AExp "+" AExp              [left, strict]
                  | "(" AExp ")"               [bracket]
   syntax BExp  ::= Bool
@@ -20,13 +19,13 @@ module IMP-SYNTAX
                    Block "else" Block         [strict(1)]
                  | "while" "(" BExp ")" Block
                  | "int" Ids ";"
-                 | "print" "(" AExps ")" ";"
+                 | "print" "(" AExps ")" ";"  [strict]
                  | "halt" ";"
                  > "spawn" Stmt
                  > Stmt Stmt                  [left]
 
   syntax Ids   ::= List{Id,","}
-  syntax AExps ::= List{AExp,","}
+  syntax AExps ::= List{AExp,","}             [seqstrict]
 endmodule
 
 

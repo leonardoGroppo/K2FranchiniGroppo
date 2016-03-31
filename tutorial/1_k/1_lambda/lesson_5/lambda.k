@@ -1,6 +1,5 @@
-// Copyright (c) 2012-2016 K Team. All Rights Reserved.
-
-require "substitution.k"
+// Copyright (c) 2012-2015 K Team. All Rights Reserved.
+require "modules/substitution.k"
 
 module LAMBDA
   imports SUBSTITUTION
@@ -10,7 +9,7 @@ module LAMBDA
   syntax Exp ::= Val
                | Exp Exp              [strict, left]
                | "(" Exp ")"          [bracket]
-  syntax KVariable ::= Id
+  syntax Variable ::= Id
   syntax KResult ::= Val
 
   rule (lambda X:Id . E:Exp) V:Val => E[V / X]
@@ -20,9 +19,9 @@ module LAMBDA
                | Exp "/" Exp          [strict]
                > Exp "+" Exp          [strict, left]
                > Exp "<=" Exp         [strict]
-  rule I1 * I2 => I1 *Int I2
-  rule I1 / I2 => I1 /Int I2
-//  rule I1 / I2 => I1 /Int I2  requires I2 =/=Int 0
-  rule I1 + I2 => I1 +Int I2
-  rule I1 <= I2 => I1 <=Int I2
+  rule I1:Int * I2:Int => I1 *Int I2
+  rule I1:Int / I2:Int => I1 /Int I2
+//  rule I1:Int / I2:Int => I1 /Int I2  when I2 =/=Int 0
+  rule I1:Int + I2:Int => I1 +Int I2
+  rule I1:Int <= I2:Int => I1 <=Int I2
 endmodule

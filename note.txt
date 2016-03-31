@@ -1,0 +1,2 @@
+INSPECT FOR ALLAH CHARACHTER
+Abbiamo aggiunto il trattino tra ALL e CHARACTERS , in quanto ci segnalava un warning di parsing ambiguity, tra il conteggio della lnghezza della stringa e il conteggio di occorrenza di un carattere. Non capiva cioè se CHARACTERS facesse parte del comando o fosse la stringa di cui contare l'occorrenza. 

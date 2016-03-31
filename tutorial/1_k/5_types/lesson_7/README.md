@@ -1,5 +1,4 @@
-<!-- Copyright (c) 2012-2016 K Team. All Rights Reserved. -->
-
+<!-- Copyright (c) 2012-2014 K Team. All Rights Reserved. -->
 ### A Naive Substitution-based Polymorphic Type Inferencer
 
 [MOVIE []]()
