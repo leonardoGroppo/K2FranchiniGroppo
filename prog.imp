@@ -1,7 +1,5 @@
 String a, b, c, d;
-
-a = "ciao come";
+LBL: "asd" { a = "ciao "; }
 b= "come va?";
 
 STRING a DELIMITED BY SIZE  b DELIMITED BY SIZE INTO c END-STRING
-STRING a DELIMITED BY SPACE b DELIMITED BY SIZE INTO d END-STRING

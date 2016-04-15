@@ -23,7 +23,9 @@ module IMP-SYNTAX
 				  | BExp "==" BExp 		[strict]
                   | "(" BExp ")"        [bracket]
 
-  syntax Block ::= "{" "}"
+  syntax Block ::=  "LBL:" AExp "{" "}"
+                  | "LBL:" AExp "{" Stmt "}"
+                  | "{" "}"
                   | "{" Stmt "}"
 
   syntax Stmt  ::= Block
@@ -32,6 +34,10 @@ module IMP-SYNTAX
                   | "String" Ids ";"
                   | "if" "(" BExp ")" Block "else" Block                                           	[strict(1)]
                   | "while" "(" BExp ")" Block
+
+
+                  //STRING 
+
 
 				  | "INSPECT" AExp "TALLYING" Id "FOR ALL-CHARACTERS"                              	[strict(1)]
 				  | "INSPECT" AExp "TALLYING" Id "FOR ALL" AExp                                    	[strict(1,3)]
@@ -52,14 +58,18 @@ module IMP-SYNTAX
                     //REGOLE INTERMEDIE
 
 
-                    | "STRING" AExp Id 	 "INTO" Id "END-STRING" 						[strict(1)]
-                    | "STRING" AExp AExp "INTO" Id "END-STRING" 						[strict(1,2)]
+	                    | "STRING" AExp Id 	 "INTO" Id "END-STRING" 						[strict(1)]
+	                    | "STRING" AExp AExp "INTO" Id "END-STRING" 						[strict(1,2)]
 
-                    | "STRING" AExp "DELIMITED BY SPACE" Id "INTO" Id "END-STRING" 	[strict(2)]
-                    | "STRING" Id AExp Id      "INTO" Id "END-STRING" 						[strict(2)]
-                    | "STRING" Id AExp Id Id   "INTO" Id "END-STRING" 						[strict(2)]
-                    | "STRING" Id AExp AExp Id "INTO" Id "END-STRING" 						[strict(2,3)]
+	                    | "STRING" AExp "DELIMITED BY SPACE" Id "INTO" Id "END-STRING" 		[strict(2)]
+	                    | "STRING" Id AExp Id      "INTO" Id "END-STRING" 					[strict(2)]
+	                    | "STRING" Id AExp Id Id   "INTO" Id "END-STRING" 					[strict(2)]
+	                    | "STRING" Id AExp AExp Id "INTO" Id "END-STRING" 					[strict(2,3)]
 
+
+
+	              //LOOPS
+	              | "PERFORM" Block AExp "TIMES" 				[strict(1,2)]
 
                  > Stmt Stmt   [left]
 
@@ -80,7 +90,7 @@ module IMP
 		<k> $PGM:K </k>
 		<env> .Map </env> 
 		<store> .Map </store > 
-    	<support> .Map </support> // cella contenente le variabili di supporto per la realizzazione della semantica
+    	<pointer> .Map </pointer> // cella contenente le variabili di supporto per la realizzazione della semantica
 		<streams >
 			<in stream="stdin"> .List </in>
 			<out stream="stdout"> .List </out> 
@@ -148,8 +158,10 @@ module IMP
   rule false == true => false
   
 // Block
-  rule {} => .   [structural]
-  rule {S} => S  [structural]
+  rule { } => .   				[structural]
+  rule {S} => S  			[structural]
+  rule LBL: N:String { } => . 	[structural]
+  rule LBL: N:String {S} =>  S	[structural]
 
 // Stmt
   rule S1:Stmt S2:Stmt => S1 ~> S2    [structural]
@@ -210,13 +222,13 @@ module IMP
 			 STRING S1:Id S1value:String S2:Id INTO S3:Id END-STRING ...</k>
 		<env>... S1 |-> N ...</env>
      	<store>... N |-> S1value ...</store>
-
+/*
     //CREO POS
     // Creo il puntatore che mi servirà per trovare il primo spazio
-    rule <k> STRING S1:Id S1value:String S2:Id INTO S3:Id END-STRING =>
+    rule <k> STRING S1:Id S1value:String S2:Id INTO S3:Id END-STRING => 
     		 STRING S1:Id S1value:String P:Id S2:Id INTO S3:Id END-STRING ...</k>
     	<env>... P |-> N ...</env> 
-  		<store>... N |-> 0 ...</store>
+  		<store>... N |-> (_ => 0) ...</store>
 
 	// CERCO POSIIONE PRIMO SPAZIO
 	// Trovo la posizione del primo spazio e la passo alla regola intermedia successiva
@@ -231,32 +243,36 @@ module IMP
   			 STRING S1:Id DELIMITED BY SIZE S2:Id DELIMITED BY SIZE INTO S3:Id END-STRING ...</k>
       	<env>... S1 |-> N ...</env>
       	<store>... N |-> (_ => substrString(S1value,0, Pos) ) ...</store>
+*/
 
-
-/*
-  rule STRING S1:String DELIMITED BY Del1:String S2:String DELIMITED BY Del2:String INTO S3:String WITH POINTER I:Int END-STRING => 
-    if( ( Del1 ==String "SPACE" || Del1 ==String "SIZE" ) && ( Del2 ==String "SPACE" || Del2 ==String "SIZE" ) )
-      { if(Del1 ==String "SPACE") { findChar(S1," ", Pos) ~> S1 = substrString(S1,0,Pos) }
-        if(Del2 ==String "SPACE") { findChar(S2," ",Pos) ~> S2 = substrString(S2,0,Pos) }
-        S3 =String S1 +String S2 ~> I =Int lengthString(S3) }
-
-  rule STRING S1:String DELIMITED BY Del1:String S2:String DELIMITED BY Del2:String INTO S3:String WITH POINTER I:Int ON OVERFLOW DISPLAY S4:String END-STRING => 
-    if((Del1 ==String "SPACE" || Del1 ==String "SIZE") && (Del2 ==String "SPACE" || Del2 ==String "SIZE"))
-      { if(Del1 ==String "SPACE") { findChar(S1," ",Pos) S1 =String substrString(S1,0,Pos) }
-        if(Del2 ==String "SPACE") { findChar(S2," ",Pos) S2 =String substrString(S2,0,Pos) }
-        S3length =String lengthString(S3) ~> S3 =String S1 +String S2 ~> I =String lengthString(S3) 
-      }
-    requires I >Int S3
-        
   //UNSTRING
-  rule UNSTRING S1:String DELIMITED BY SPACE INTO List END-UNSTRING =>
+  rule <k> UNSTRING S1:String DELIMITED BY SPACE INTO List END-UNSTRING => .K ... </k>
 
-    StartPos =Int 0 ~> Index =Int 0 ~> 
-  while( Index <Int size(List) ){
-      //cerco la posizione dello spazio                  splitto                                    riaggiusto l'indice per cercare lo spazio successivo
-      findChar(substrString(S1,StartPos,stringLength(S1))," ",EndPos) ~> List[i] =String substrString(S1,StartPos,EndPos) ~> StartPos =Int EndPos ~> i =Int i +Int 1
-    }
-*/  
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+									//   LOOPS
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//rule <k> LBL: AExp { S:Stmt }  => .K ...</k>
+
+
+rule <k> PERFORM Block:Block N:Int TIMES => .K ...</k>
+
+
+
+
+
 
 
 endmodule
