@@ -1,278 +1,350 @@
-// Copyright (c) 2014-2015 K Team. All Rights Reserved.
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//
+//                                PROJECT K2 
+//                     Groppo Leonardo - Franchini Andrea
+//
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 
 require "builtins/string.k"
 require "io/io.k"
 require "builtins/list.k"
 
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//
+//                                SYNTAX MODULE 
+//
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
 module IMP-SYNTAX
 
-  syntax AExp  ::= Int | Id | String
+  	syntax AExp  ::= Int | Id | String
                   	| AExp "/" AExp     [left, strict]
 				  	| AExp "*" AExp		[left, strict]
                   	> AExp "+" AExp     [left, strict]
         			| AExp "-" AExp		[left, strict]
                   	| "(" AExp ")"      [bracket]
 
-  syntax BExp  ::= Bool
-                  | AExp "<=" AExp      [seqstrict, latex({#1}\leq{#2})]
-				  | AExp ">=" AExp     	[seqstrict, latex({#1}\geq{#2})]
-				  | AExp "==" AExp 		[strict]
-                  | "!" BExp            [strict]
-                  > BExp "&&" BExp      [left, strict(1)]
-				  | BExp "||" BExp		[left, strict(1)]
-				  | BExp "==" BExp 		[strict]
-                  | "(" BExp ")"        [bracket]
+  	syntax BExp  ::= Bool
+                 	| AExp "<=" AExp     [seqstrict, latex({#1}\leq{#2})]
+				  	| AExp ">=" AExp     [seqstrict, latex({#1}\geq{#2})]
+				  	| AExp "==" AExp 	 [strict]
+                  	| "!" BExp           [strict]
+                  	> BExp "&&" BExp     [left, strict(1)]
+				  	| BExp "||" BExp	 [left, strict(1)]
+				  	| BExp "==" BExp 	 [strict]
+                  	| "(" BExp ")"       [bracket]
 
-  syntax Block ::=  "LBL:" AExp "{" "}"
-                  | "LBL:" AExp "{" Stmt "}"
-                  | "{" "}"
-                  | "{" Stmt "}"
+  	syntax Block ::=  AExp ": {" "}"		
+                  	| AExp ": {" Stmt "}"	
+                  	| "{" "}"
+                  	| "{" Stmt "}"
 
-  syntax Stmt  ::= Block
-                  | AExp "=" AExp ";"                                                              	[strict(2)] 
-                  | "int" Ids ";"
-                  | "String" Ids ";"
-                  | "if" "(" BExp ")" Block "else" Block                                           	[strict(1)]
-                  | "while" "(" BExp ")" Block
-
-
-                  //STRING 
+  	syntax Stmt  ::= Block
+                  	| AExp "=" AExp ";"                     [strict(2)] 
+                  	| "int" Ids ";"
+                  	| "String" Ids ";"
+                  	| "if" "(" BExp ")" Block "else" Block  [strict(1)]
+                  	| "while" "(" BExp ")" Block
 
 
-				  | "INSPECT" AExp "TALLYING" Id "FOR ALL-CHARACTERS"                              	[strict(1)]
-				  | "INSPECT" AExp "TALLYING" Id "FOR ALL" AExp                                    	[strict(1,3)]
-				  | "INSPECT" Id "REPLACING ALL" AExp "BY" AExp                                    	[strict(2,3)]
+	////////////////////////////////////////////////////////////////////////////
+	//                              STRING STATEMENT 
+	////////////////////////////////////////////////////////////////////////////
 
-				  | "STRING" Id "DELIMITED BY SIZE"  Id "DELIMITED BY SIZE INTO"  Id "END-STRING"   [strict]   
-				  | "STRING" Id "DELIMITED BY SPACE" Id "DELIMITED BY SIZE INTO"  Id "END-STRING" 	[strict]
-				  | "STRING" Id "DELIMITED BY SIZE"  Id "DELIMITED BY SPACE INTO" Id "END-STRING" 	[strict]
-				  | "STRING" Id "DELIMITED BY SPACE" Id "DELIMITED BY SPACE INTO" Id "END-STRING" 	[strict]
-				  															
+				//STRING INSPECT
+				| "INSPECT" AExp "TALLYING" Id "FOR ALL-CHARACTERS"                              	[strict(1)]
+				| "INSPECT" AExp "TALLYING" Id "FOR ALL" AExp                                    	[strict(1,3)]
+				| "INSPECT" Id "REPLACING ALL" AExp "BY" AExp                                    	[strict(2,3)]
 
-                  | "UNSTRING" AExp "DELIMITED BY SPACE INTO" AExps
-                    "END-UNSTRING" 																	[strict]
-                  | "UNSTRING" AExp "DELIMITED BY SPACE INTO" AExp
-                    "WITH POINTER" AExp 
-                    "END-UNSTRING" 																	[strict]
+				//STRING CONCATENATION
+				| "STRING" Id "DELIMITED BY SIZE"  Id "DELIMITED BY SIZE INTO"  Id "END-STRING"   	[strict]   
+				| "STRING" Id "DELIMITED BY SPACE" Id "DELIMITED BY SIZE INTO"  Id "END-STRING" 	[strict]
+				| "STRING" Id "DELIMITED BY SIZE"  Id "DELIMITED BY SPACE INTO" Id "END-STRING" 	[strict]
+				| "STRING" Id "DELIMITED BY SPACE" Id "DELIMITED BY SPACE INTO" Id "END-STRING" 	[strict]	
 
-                    //REGOLE INTERMEDIE
+						//INTERMEDIATE RULES
+		                | "STRING" AExp Id 	 "INTO" Id       "END-STRING" 		[strict(1)]
+		                | "STRING" AExp AExp "INTO" Id       "END-STRING" 	    [strict(1,2)]
+		                | "STRING" Id AExp 	 "INTO" Id       "END-STRING"		[strict(2)]
+		                | "STRING" AExp Id   "SPACE INTO" Id "END-STRING"		[strict(1)]				
 
-
-	                    | "STRING" AExp Id 	 "INTO" Id "END-STRING" 						[strict(1)]
-	                    | "STRING" AExp AExp "INTO" Id "END-STRING" 						[strict(1,2)]
-
-	                    | "STRING" AExp "DELIMITED BY SPACE" Id "INTO" Id "END-STRING" 		[strict(2)]
-	                    | "STRING" Id AExp Id      "INTO" Id "END-STRING" 					[strict(2)]
-	                    | "STRING" Id AExp Id Id   "INTO" Id "END-STRING" 					[strict(2)]
-	                    | "STRING" Id AExp AExp Id "INTO" Id "END-STRING" 					[strict(2,3)]
+				//STRING SPLIT
+                | "UNSTRING" AExp "DELIMITED BY SPACE INTO" Ids  "END-UNSTRING" 	[strict(1)]
 
 
 
-	              //LOOPS
-	              | "PERFORM" Block AExp "TIMES" 				[strict(1,2)]
+	////////////////////////////////////////////////////////////////////////////
+	//                              LOOP STATEMENT 
+	////////////////////////////////////////////////////////////////////////////
 
-                 > Stmt Stmt   [left]
+	            //LOOPS
+	            | "PERFORM" AExp AExp "TIMES" 				[strict(1,2)]
 
-  syntax Ids    ::= List{Id,","}			[seqstrict]
-  syntax AExps  ::= List{AExp, ","}         [seqstrict]
+                > Stmt Stmt   [left]
+
+  	syntax Ids    ::= List{Id,","}			[seqstrict]
+  	syntax AExps  ::= List{AExp, ","}       [seqstrict]
 
 endmodule
 
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//
+//                             SEMANTIC MODULE 
+//
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 
 module IMP
 
-  imports IMP-SYNTAX 
+  	imports IMP-SYNTAX 
 
-  syntax KResult ::= Int | Bool | String
+  	syntax KResult ::= Int | Bool | String
 
-  configuration
-	<T>
-		<k> $PGM:K </k>
-		<env> .Map </env> 
-		<store> .Map </store > 
-    	<pointer> .Map </pointer> // cella contenente le variabili di supporto per la realizzazione della semantica
-		<streams >
-			<in stream="stdin"> .List </in>
-			<out stream="stdout"> .List </out> 
-		</streams>
-	</T>
+  	configuration
+		<T>
+			<k> $PGM:K </k>
+			<env> .Map </env> 
+			<store> .Map </store>
+			<block> .Map </block>
+			<streams >
+				<in stream="stdin"> .List </in>
+				<out stream="stdout"> .List </out> 
+			</streams>
+		</T>
 
-////////////////////////////////////////       ENV & STORE CELL DEFINITION         ////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////
+	//                        <env> & <store> BEHAVIOR
+	////////////////////////////////////////////////////////////////////////////
 
-// lettura di variabile intera
-  rule <k> X => I ...</k> 
-  <env>... X |-> N ...</env> 
-  <store>... N |-> I:Int ...</store>
+	//////////////////////
+	//        INT
+	//////////////////////
 
-// lettura di variabile string
-  rule <k> X => S ...</k> 
-  <env>... X |-> N ...</env> 
-  <store>... N |-> S:String ...</store>
+	//INT DECLARATION
+	rule <k> int (X:Id, X1:Ids => X1); ...</k>
+	    <env> Rho:Map => Rho[X <- !N:Int] </env>
+	    <store>... .Map => !N |-> 0 ...</store>
+	  	when notBool(X in keys(Rho))
 
-// int variable declaration
-  rule <k> X = I:Int; => . ...</k>
-  <env>... X |-> N ...</env>
-  <store>... N |-> (_ => I) ...</store>
+	//MANAGEMENT OF INT EMPTY LIST
+	rule int .Ids; => .K [structural]
 
-// string variable declaration
-  rule <k> X = S:String; => . ...</k> 
-  <env>... X |-> L ...</env>
-  <store>... L |-> (_ => S) ...</store>
+	//INT ASSIGN
+  	rule <k> X = I:Int; => . ...</k>
+  		<env>... X |-> N ...</env>
+  		<store>... N |-> (_ => I) ...</store>
 
- // Pgm
- rule <k> int (X:Id, X1:Ids => X1); ...</k>
-      <env> Rho:Map => Rho[X <- !N:Int] </env>
-      <store>... .Map => !N |-> 0 ...</store>
-  when notBool(X in keys(Rho))
+	//READING INT
+  	rule <k> X => I ...</k> 
+  		<env>... X |-> N ...</env> 
+  		<store>... N |-> I:Int ...</store>
 
- rule <k> String (X:Id, X1:Ids => X1); ...</k>
-      <env> Rho:Map => Rho[X <- !N:Int] </env>
-      <store>... .Map => !N |-> "" ...</store>
-  when notBool(X in keys(Rho))
+  	//////////////////////
+	//      STRING
+	//////////////////////
 
-  rule int .Ids; => .K [structural]
-  rule String .Ids; => .K [structural]
+	//STRING DECLARATION
+	rule <k> String (X:Id, X1:Ids => X1); ...</k>
+	    <env> Rho:Map => Rho[X <- !N:Int] </env>
+	    <store>... .Map => !N |-> "" ...</store>
+		when notBool(X in keys(Rho))
 
-//////////////////////////////////////////////////      BASIC RULE       //////////////////////////////////
+	//MANAGEMENT OF STRING EMPTY LIST
+	rule String .Ids; => .K [structural]
 
-// AExp
-  rule I1 / I2 => I1 /Int I2  when I2 =/=Int 0
-  rule I1 * I2 => I1 *Int I2
-  rule I1 + I2 => I1 +Int I2
-  rule I1 - I2 => I1 -Int I2
-  rule S1 + S2 => S1 +String S2
-  
-// BExp
-  rule I1 <= I2 => I1 <=Int I2
-  rule I1 >= I2 => I1 >=Int I2
-  rule I1 == I2 => I1 ==Int I2
-  rule S1 == S2 => S1 ==String S2
-  rule ! T => notBool T
-  rule true && B => B
-  rule false && _ => false
-  rule true || _ => true
-  rule false || B => B
-  rule true == true => true
-  rule true == false => false
-  rule false == false => true
-  rule false == true => false
-  
-// Block
-  rule { } => .   				[structural]
-  rule {S} => S  			[structural]
-  rule LBL: N:String { } => . 	[structural]
-  rule LBL: N:String {S} =>  S	[structural]
+	//STRING ASSIGN
+	rule <k> X = S:String; => . ...</k> 
+	  	<env>... X |-> L ...</env>
+	  	<store>... L |-> (_ => S) ...</store>
 
-// Stmt
-  rule S1:Stmt S2:Stmt => S1 ~> S2    [structural]
+	//READING STRING
+  	rule <k> X => S ...</k> 
+		<env>... X |-> N ...</env> 
+		<store>... N |-> S:String ...</store>
 
-  //conditions
-  rule if (true)  S else _ => S
-  rule if (false) _ else S => S
-  rule while (B) S => if (B) { S while (B) S } else {}       [structural]
+	/////////////////////////////////////////////////////////////////////////////
+	//                             BASIC RULES
+	////////////////////////////////////////////////////////////////////////////
+
+	//INT OPERATIONS
+	rule I1 / I2 => I1 /Int I2  when I2 =/=Int 0
+	rule I1 * I2 => I1 *Int I2
+	rule I1 + I2 => I1 +Int I2
+	rule I1 - I2 => I1 -Int I2
+	rule S1 + S2 => S1 +String S2
+	  
+	//BOOLEAN OPERATION
+	rule I1 <= I2 => I1 <=Int I2
+	rule I1 >= I2 => I1 >=Int I2
+	rule I1 == I2 => I1 ==Int I2
+	rule S1 == S2 => S1 ==String S2
+	rule ! T => notBool T
+	rule true && B => B
+	rule false && _ => false
+	rule true || _ => true
+	rule false || B => B
+	rule true == true => true
+	rule true == false => false
+	rule false == false => true
+	rule false == true => false
+	  
+	//BLOCK MANAGEMENT
+	rule { } => .   							[structural]
+	rule {S} => S  								[structural]
+	rule L : { } => . 							[structural]
+	rule <k> L : {S} => S ...</k>
+		<block> Rho:Map => Rho[L <- S]</block>	
+
+	//STATEMENT MANAGEMENT
+    rule S1:Stmt S2:Stmt => S1 ~> S2    [structural]
+
+	//CONDITION MANAGEMENT
+	rule if (true)  S else _ => S
+	rule if (false) _ else S => S
+	rule while (B) S => if (B) { S while (B) S } else {}       [structural]
 
 
-//////////////////////////////////     INSPECT	   ///////////////////////////////////////////////
 
+
+	////////////////////////////////////////////////////////////////////////////
+	//                              STRING RULES 
+	////////////////////////////////////////////////////////////////////////////
+
+
+
+	//////////////////////////////////////////
+	//				STRING INSPECT	   
+	//////////////////////////////////////////
+
+	//Count the occurrences of all characters, in other words, the string's length
 	rule <k> INSPECT S1:String TALLYING I1:Id FOR ALL-CHARACTERS => .K ...</k>
 	  	<env>... I1 |-> N ...</env>
 	  	<store>... N |-> (_ => lengthString(S1)) ...</store>
-	  
+		  
+	//Count the occurrences of the given character
 	rule <k> INSPECT S1:String TALLYING I1:Id FOR ALL S2:String => .K ...</k> 
 	     <env> ... I1 |-> N ...</env>
 	     <store> ... N |-> (_ => countAllOccurrences(S1,S2)) ...</store> when lengthString(S2) =Int 1
-
-	  
+		  
+	//Replace all the occurrences of the first character with the second one
 	rule <k> INSPECT S1:Id REPLACING ALL S2:String BY S3:String => .K ...</k>
 	    <env>... S1 |-> N ...</env>
-	    <store>... N |-> (S => replaceAll(S,S2,S3) ) ...</store>
-	   //replace all funziona già di suo con s2 s3 caratteri e non stringhe. Il when non serve
+	    <store>... N |-> (S => replaceAll(S,S2,S3) ) ...</store>  //replaceAll test itself if s2 s3 are character
 
 
 
-//////////////////////////////      CONCATENAMENTO       //////////////////////////////////
+	///////////////////////////////////////////////  
+	//				STRING CONCATENATION	   
+	///////////////////////////////////////////////
 
-	// CASO SIZE SIZE 
-	//FETCH VALORE PRIMA STRINGA
-	// Vado in memoria, recupero il valore di S1 e lo passo alla regola semantica intermedia.
+	//CASE "SIZE SIZE" 
+
+	//Fetch first string value
   	rule <k> STRING S1:Id DELIMITED BY SIZE S2:Id DELIMITED BY SIZE INTO S3:Id END-STRING => 
   		 	 STRING S1value:String S2:Id INTO S3:Id END-STRING ...</k>
       	<env>... S1 |-> N ...</env>
      	<store>... N |-> S1value ...</store>
 
-    //FETCH VALORE SECONDA STRINGA 
-    // Vado in memoria, recupero il valore di S2 e lo passo alla regola semantica finale. 
-  	rule <k> STRING S1value:String S2:Id INTO S3:Id END-STRING => 
-  			 STRING S1value:String S2value:String INTO S3:Id END-STRING ...</k>
- 		<env>... S2 |-> N ...</env>
-     	<store>... N |-> S2value ...</store>
+				//Fetch second string value
+			  	rule <k> STRING S1value:String S2:Id INTO S3:Id END-STRING => 
+			  			 STRING S1value:String S2value:String INTO S3:Id END-STRING ...</k>
+			 		<env>... S2 |-> N ...</env>
+			     	<store>... N |-> S2value ...</store>
 
-    //CONCATENAMENTO DEI DUE VALORI
-    // In S3 salvo il risultato dell'operazione (concatenamento di due stringhe)
-    rule <k> STRING S1value:String S2value:String INTO S3:Id END-STRING => .K ...</k>
-		<env>... S3 |-> N ...</env>
-     	<store>... N |-> (_ => S1value +String S2value ) ...</store>
+			    //Concatenation
+			    rule <k> STRING S1value:String S2value:String INTO S3:Id END-STRING => .K ...</k>
+					<env>... S3 |-> N ...</env>
+			     	<store>... N |-> (_ => S1value +String S2value ) ...</store>
 
 
+	//CASE "SPACE SIZE" 
 
-// CASO SPACE SIZE 
-	//PRENDO VALORE S1
-	// Vado in memoria, recupero il valore di S1 e lo passo alla regola semantica intermedia.
+	//Fetch first string value and substringing it
 	rule <k> STRING S1:Id DELIMITED BY SPACE S2:Id DELIMITED BY SIZE INTO S3:Id END-STRING =>
-			 STRING S1:Id S1value:String S2:Id INTO S3:Id END-STRING ...</k>
+			 STRING substrString(S1value, 0, findChar(S1value, " ", 0)) S2:Id INTO S3:Id END-STRING ...</k>
 		<env>... S1 |-> N ...</env>
      	<store>... N |-> S1value ...</store>
-/*
-    //CREO POS
-    // Creo il puntatore che mi servirà per trovare il primo spazio
-    rule <k> STRING S1:Id S1value:String S2:Id INTO S3:Id END-STRING => 
-    		 STRING S1:Id S1value:String P:Id S2:Id INTO S3:Id END-STRING ...</k>
-    	<env>... P |-> N ...</env> 
-  		<store>... N |-> (_ => 0) ...</store>
 
-	// CERCO POSIIONE PRIMO SPAZIO
-	// Trovo la posizione del primo spazio e la passo alla regola intermedia successiva
-	rule <k> STRING S1:Id S1value:String P:Id    S2:Id INTO S3:Id END-STRING => 
-			 STRING S1:Id S1value:String Pos:Int S2:Id INTO S3:Id END-STRING ...</k>
-	  	<env>... P |-> N ...</env>
-	  	<store>... N |-> (Pos => findChar(S1value," ", Pos) ) ...</store>
-
-	//CALCOLO VALORE PRIMA STRINGA, MI RICONDUCO A CASO SIZE SIZE
-	// Sovrascrivo S1 con S1 meno tutti i caratteri successivi al primo spazio
-  	rule <k> STRING S1:Id S1value:String Pos:Int S2:Id INTO S3:Id END-STRING => 
-  			 STRING S1:Id DELIMITED BY SIZE S2:Id DELIMITED BY SIZE INTO S3:Id END-STRING ...</k>
-      	<env>... S1 |-> N ...</env>
-      	<store>... N |-> (_ => substrString(S1value,0, Pos) ) ...</store>
-*/
-
-  //UNSTRING
-  rule <k> UNSTRING S1:String DELIMITED BY SPACE INTO List END-UNSTRING => .K ... </k>
+     			//I will bring me to the case "SIZE SIZE" -> Fetch second string value -> Concatenation
 
 
+    //CASE "SIZE SPACE"
+
+    //Fetch second string value and substringing it
+	rule <k> STRING S1:Id DELIMITED BY SIZE S2:Id DELIMITED BY SPACE INTO S3:Id END-STRING =>
+			 STRING S1:Id substrString(S2value, 0, findChar(S2value, " ", 0)) INTO S3:Id END-STRING ...</k>
+		<env>... S2 |-> N ...</env>
+     	<store>... N |-> S2value ...</store>
+
+			    //Fetch first string value
+			    rule <k> STRING S1:Id S2value:String INTO S3:Id END-STRING =>
+			    		 STRING S1value:String S2value:String INTO S3:Id END-STRING ...</k>
+			      	<env>... S1 |-> N ...</env>
+			     	<store>... N |-> S1value ...</store>
+
+			    //I will bring me to the case "SIZE SIZE" -> Concatenation
 
 
+    //CASE "SPACE SPACE" 
 
+    //Fetch first string value and substringing it
+	rule <k> STRING S1:Id DELIMITED BY SPACE S2:Id DELIMITED BY SPACE INTO S3:Id END-STRING =>
+			 STRING substrString(S1value, 0, findChar(S1value, " ", 0)) S2:Id SPACE INTO S3:Id END-STRING ...</k>
+		<env>... S1 |-> N ...</env>
+     	<store>... N |-> S1value ...</store>
 
+	     		//Fetch second string value and substringing it
+			    rule <k> STRING S1value:String S2:Id SPACE INTO S3:Id END-STRING =>
+					     STRING S1value:String substrString(S2value, 0, findChar(S2value, " ", 0)) INTO S3:Id END-STRING ...</k>
+					<env>... S2 |-> N ...</env>
+			     	<store>... N |-> S2value ...</store>
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-									//   LOOPS
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-//rule <k> LBL: AExp { S:Stmt }  => .K ...</k>
-
-
-rule <k> PERFORM Block:Block N:Int TIMES => .K ...</k>
+			    //I will bring me to the case "SIZE SIZE" -> Concatenation
 
 
 
+    ///////////////////////////////////////////////  
+	//				  STRING SPLIT	   
+	///////////////////////////////////////////////
+
+	//Split the list by the space into the list of variables
+    rule <k> UNSTRING S1:String DELIMITED BY SPACE INTO X:Id, VarList:Ids END-UNSTRING => 
+
+    					//recursive calling itself passing the string without the splitted word
+    		 UNSTRING 	substrString(S1, findChar(S1, " ", 0)+Int 1, lengthString(S1)) 
+    		 			DELIMITED BY SPACE INTO VarList 
+    		 END-UNSTRING ... </k>
+
+    	//save the word of the string
+    	<env>... X |-> N ...</env>
+		<store>... N |-> (_ => substrString(S1, 0, findChar(S1, " ", 0))) ...</store> 
+
+		//until it's reached the last word of the string
+		when findChar(S1, " ", 0) =/=Int -1
+
+	//base case: it's reached the last word of the string
+    rule <k> UNSTRING S1:String DELIMITED BY SPACE INTO X:Id, VarList:Ids END-UNSTRING => .K ... </k>
+    	<env>... X |-> N ...</env>
+    	//save the last word
+		<store>... N |-> (_ => S1) ...</store> 
+		when findChar(S1, " ", 0) ==Int -1
+
+	//base case: there are no variables left in the list
+	rule UNSTRING S1:String DELIMITED BY SPACE INTO .Ids END-UNSTRING => .K
 
 
 
+
+	////////////////////////////////////////////////////////////////////////////
+	//                              LOOP RULES
+	////////////////////////////////////////////////////////////////////////////
+
+	rule <k> PERFORM LBL:String N:Int TIMES => STM ...</k>
+		<block>... LBL |-> STM ...</block>
 
 endmodule

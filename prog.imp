@@ -1,5 +1,8 @@
-String a, b, c, d;
-LBL: "asd" { a = "ciao "; }
-b= "come va?";
+int i;
+i=5;
 
-STRING a DELIMITED BY SIZE  b DELIMITED BY SIZE INTO c END-STRING
+etc: {
+	i = i+1;
+}
+
+PERFORM "etc" 1 TIMES

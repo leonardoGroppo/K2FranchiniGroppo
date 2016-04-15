@@ -10,71 +10,67 @@ context-free priorities
     Int -> AExp {}
     Id -> AExp {}
     String -> AExp {}
-    AExp "/" AExp -> AExp {left, cons("AExp1426Syn")}
-    AExp "*" AExp -> AExp {left, cons("AExp1369Syn")}
+    AExp "/" AExp -> AExp {left, cons("AExp1423Syn")}
+    AExp "*" AExp -> AExp {left, cons("AExp1367Syn")}
 } > {
-    AExp "+" AExp -> AExp {left, cons("AExp154Syn")}
-    AExp "-" AExp -> AExp {left, cons("AExp129Syn")}
+    AExp "+" AExp -> AExp {left, cons("AExp152Syn")}
+    AExp "-" AExp -> AExp {left, cons("AExp130Syn")}
 }
 
 context-free priorities
 {
     Bool -> BExp {}
-    AExp "<=" AExp -> BExp {cons("BExp1423Syn")}
-    AExp ">=" AExp -> BExp {cons("BExp1374Syn")}
+    AExp "<=" AExp -> BExp {cons("BExp1409Syn")}
+    AExp ">=" AExp -> BExp {cons("BExp1372Syn")}
     AExp "==" AExp -> BExp {cons("BExp13Syn")}
-    "!" BExp -> BExp {cons("BExp1204Syn")}
+    "!" BExp -> BExp {cons("BExp1203Syn")}
 } > {
-    BExp "&&" BExp -> BExp {left, cons("BExp1348Syn")}
-    BExp "||" BExp -> BExp {left, cons("BExp1368Syn")}
-    BExp "==" BExp -> BExp {cons("BExp1288Syn")}
+    BExp "&&" BExp -> BExp {left, cons("BExp1346Syn")}
+    BExp "||" BExp -> BExp {left, cons("BExp1366Syn")}
+    BExp "==" BExp -> BExp {cons("BExp1285Syn")}
 }
 
 context-free priorities
 {
     Block -> Stmt {}
-    AExp "=" InsertDzAExp ";" -> Stmt {cons("Stmt1266Syn")}
-    "if" "(" InsertDzBExp ")" InsertDzBlock "else" Block -> Stmt {cons("Stmt1424Syn")}
-    "while" "(" InsertDzBExp ")" Block -> Stmt {cons("Stmt1363Syn")}
-    "INSPECT" InsertDzAExp "TALLYING" InsertDzId "FOR ALL" AExp -> Stmt {cons("Stmt1349Syn")}
-    "INSPECT" InsertDzId "REPLACING ALL" InsertDzAExp "BY" AExp -> Stmt {cons("Stmt190Syn")}
+    AExp "=" InsertDzAExp ";" -> Stmt {cons("Stmt1264Syn")}
+    "if" "(" InsertDzBExp ")" InsertDzBlock "else" Block -> Stmt {cons("Stmt1420Syn")}
+    "while" "(" InsertDzBExp ")" Block -> Stmt {cons("Stmt1360Syn")}
+    "INSPECT" InsertDzAExp "TALLYING" InsertDzId "FOR ALL" AExp -> Stmt {cons("Stmt1347Syn")}
+    "INSPECT" InsertDzId "REPLACING ALL" InsertDzAExp "BY" AExp -> Stmt {cons("Stmt188Syn")}
 } > {
-    Stmt Stmt -> Stmt {left, cons("Stmt1256Syn")}
+    Stmt Stmt -> Stmt {left, cons("Stmt1254Syn")}
 }
 
 context-free start-symbols
 DzString DzBool AExp AExps BExp String Int Stmt Float Bool Block Ids Id DzInt DzFloat K
 context-free syntax
+    AExp ": {" InsertDzStmt "}" -> Block {cons("Block1380Syn")}
     DzString -> String {}
-    "UNSTRING" InsertDzAExp "DELIMITED BY SPACE INTO" InsertDzAExps "END-UNSTRING" -> Stmt {cons("Stmt1246Syn")}
+    "PERFORM" InsertDzAExp InsertDzAExp "TIMES" -> Stmt {cons("Stmt1245Syn")}
     "(" InsertDzAExp ")" -> AExp {cons("AExp1Bracket")}
-    "String" InsertDzIds ";" -> Stmt {cons("Stmt1249Syn")}
-    "STRING" InsertDzId InsertDzAExp InsertDzId "INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1273Syn")}
+    "String" InsertDzIds ";" -> Stmt {cons("Stmt1248Syn")}
     DzInt -> Int {}
     {Id ","}* -> Ids {cons("Ids1ListSyn")}
-    "STRING" InsertDzAExp "DELIMITED BY SPACE" InsertDzId "INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1252Syn")}
+    "STRING" InsertDzId InsertDzAExp "INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt16Syn")}
     DzFloat -> Float {}
-    "STRING" InsertDzId "DELIMITED BY SIZE" InsertDzId "DELIMITED BY SIZE INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt122Syn")}
-    "LBL:" InsertDzAExp "{" "}" -> Block {cons("Block1397Syn")}
-    "{" InsertDzStmt "}" -> Block {cons("Block165Syn")}
-    "{" "}" -> Block {cons("Block1400Syn")}
-    "int" InsertDzIds ";" -> Stmt {cons("Stmt168Syn")}
-    "STRING" InsertDzId "DELIMITED BY SPACE" InsertDzId "DELIMITED BY SIZE INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1285Syn")}
-    "UNSTRING" InsertDzAExp "DELIMITED BY SPACE INTO" InsertDzAExp "WITH POINTER" InsertDzAExp "END-UNSTRING" -> Stmt {cons("Stmt133Syn")}
-    "PERFORM" InsertDzBlock InsertDzAExp "TIMES" -> Stmt {cons("Stmt134Syn")}
+    "STRING" InsertDzId "DELIMITED BY SIZE" InsertDzId "DELIMITED BY SIZE INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt123Syn")}
+    "{" InsertDzStmt "}" -> Block {cons("Block163Syn")}
+    "STRING" InsertDzAExp InsertDzId "SPACE INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt193Syn")}
+    "{" "}" -> Block {cons("Block1397Syn")}
+    "int" InsertDzIds ";" -> Stmt {cons("Stmt166Syn")}
+    "STRING" InsertDzId "DELIMITED BY SPACE" InsertDzId "DELIMITED BY SIZE INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1282Syn")}
     DzBool -> Bool {}
-    "INSPECT" InsertDzAExp "TALLYING" InsertDzId "FOR ALL-CHARACTERS" -> Stmt {cons("Stmt1205Syn")}
-    "STRING" InsertDzId InsertDzAExp InsertDzId InsertDzId "INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1375Syn")}
-    "STRING" InsertDzAExp InsertDzId "INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1407Syn")}
-    "STRING" InsertDzId "DELIMITED BY SPACE" InsertDzId "DELIMITED BY SPACE INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1345Syn")}
-    "LBL:" InsertDzAExp "{" InsertDzStmt "}" -> Block {cons("Block142Syn")}
-    "STRING" InsertDzId InsertDzAExp InsertDzAExp InsertDzId "INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1225Syn")}
+    "INSPECT" InsertDzAExp "TALLYING" InsertDzId "FOR ALL-CHARACTERS" -> Stmt {cons("Stmt1204Syn")}
+    AExp ": {" "}" -> Block {cons("Block1338Syn")}
+    "STRING" InsertDzAExp InsertDzId "INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1404Syn")}
+    "STRING" InsertDzId "DELIMITED BY SPACE" InsertDzId "DELIMITED BY SPACE INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1343Syn")}
     {AExp ","}* -> AExps {cons("AExps1ListSyn")}
-    "STRING" InsertDzAExp InsertDzAExp "INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1305Syn")}
-    "STRING" InsertDzId "DELIMITED BY SIZE" InsertDzId "DELIMITED BY SPACE INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1242Syn")}
+    "STRING" InsertDzAExp InsertDzAExp "INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1302Syn")}
+    "UNSTRING" InsertDzAExp "DELIMITED BY SPACE INTO" InsertDzIds "END-UNSTRING" -> Stmt {cons("Stmt1228Syn")}
+    "STRING" InsertDzId "DELIMITED BY SIZE" InsertDzId "DELIMITED BY SPACE INTO" InsertDzId "END-STRING" -> Stmt {cons("Stmt1240Syn")}
     "(" InsertDzBExp ")" -> BExp {cons("BExp1Bracket")}
     AExp -> InsertDzAExp
-    AExps -> InsertDzAExps
     BExp -> InsertDzBExp
     Block -> InsertDzBlock
     Ids -> InsertDzIds
