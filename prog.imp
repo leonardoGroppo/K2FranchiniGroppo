@@ -1,8 +1,8 @@
-int i;
-i=5;
+int i,a;
+i=0;
 
-etc: {
+"etc":{
 	i = i+1;
 }
 
-PERFORM "etc" 1 TIMES
+PERFORM "etc" VARYING a FROM 0 BY 1 UNTIL a = 5

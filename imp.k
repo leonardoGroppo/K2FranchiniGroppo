@@ -1,11 +1,22 @@
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 //
 //                                PROJECT K2 
 //                     Groppo Leonardo - Franchini Andrea
 //
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////
+//
+//                                TODO
+//
+//	-i PERFORM funzionano solo su blocchi precedentemente dichiarati
+//
+////////////////////////////////////////////////////////////////////////////
+
 
 require "builtins/string.k"
 require "io/io.k"
@@ -13,9 +24,13 @@ require "builtins/list.k"
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//
 //
 //                                SYNTAX MODULE 
 //
+//
+////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 
@@ -38,8 +53,8 @@ module IMP-SYNTAX
 				  	| BExp "==" BExp 	 [strict]
                   	| "(" BExp ")"       [bracket]
 
-  	syntax Block ::=  AExp ": {" "}"		
-                  	| AExp ": {" Stmt "}"	
+  	syntax Block ::=  AExp ":{" "}"		
+                  	| AExp ":{" Stmt "}"	
                   	| "{" "}"
                   	| "{" Stmt "}"
 
@@ -50,30 +65,29 @@ module IMP-SYNTAX
                   	| "if" "(" BExp ")" Block "else" Block  [strict(1)]
                   	| "while" "(" BExp ")" Block
 
-
 	////////////////////////////////////////////////////////////////////////////
 	//                              STRING STATEMENT 
 	////////////////////////////////////////////////////////////////////////////
 
-				//STRING INSPECT
-				| "INSPECT" AExp "TALLYING" Id "FOR ALL-CHARACTERS"                              	[strict(1)]
-				| "INSPECT" AExp "TALLYING" Id "FOR ALL" AExp                                    	[strict(1,3)]
-				| "INSPECT" Id "REPLACING ALL" AExp "BY" AExp                                    	[strict(2,3)]
+			//STRING INSPECT
+			| "INSPECT" AExp "TALLYING" Id "FOR ALL-CHARACTERS"                              	[strict(1)]
+			| "INSPECT" AExp "TALLYING" Id "FOR ALL" AExp                                    	[strict(1,3)]
+			| "INSPECT" Id "REPLACING ALL" AExp "BY" AExp                                    	[strict(2,3)]
 
-				//STRING CONCATENATION
-				| "STRING" Id "DELIMITED BY SIZE"  Id "DELIMITED BY SIZE INTO"  Id "END-STRING"   	[strict]   
-				| "STRING" Id "DELIMITED BY SPACE" Id "DELIMITED BY SIZE INTO"  Id "END-STRING" 	[strict]
-				| "STRING" Id "DELIMITED BY SIZE"  Id "DELIMITED BY SPACE INTO" Id "END-STRING" 	[strict]
-				| "STRING" Id "DELIMITED BY SPACE" Id "DELIMITED BY SPACE INTO" Id "END-STRING" 	[strict]	
+			//STRING CONCATENATION
+			| "STRING" Id "DELIMITED BY SIZE"  Id "DELIMITED BY SIZE INTO"  Id "END-STRING"   	[strict]   
+			| "STRING" Id "DELIMITED BY SPACE" Id "DELIMITED BY SIZE INTO"  Id "END-STRING" 	[strict]
+			| "STRING" Id "DELIMITED BY SIZE"  Id "DELIMITED BY SPACE INTO" Id "END-STRING" 	[strict]
+			| "STRING" Id "DELIMITED BY SPACE" Id "DELIMITED BY SPACE INTO" Id "END-STRING" 	[strict]	
 
-						//INTERMEDIATE RULES
-		                | "STRING" AExp Id 	 "INTO" Id       "END-STRING" 		[strict(1)]
-		                | "STRING" AExp AExp "INTO" Id       "END-STRING" 	    [strict(1,2)]
-		                | "STRING" Id AExp 	 "INTO" Id       "END-STRING"		[strict(2)]
-		                | "STRING" AExp Id   "SPACE INTO" Id "END-STRING"		[strict(1)]				
+					//INTERMEDIATE RULES
+	                | "STRING" AExp Id 	 "INTO" Id       "END-STRING" 		[strict(1)]
+	                | "STRING" AExp AExp "INTO" Id       "END-STRING" 	    [strict(1,2)]
+	                | "STRING" Id AExp 	 "INTO" Id       "END-STRING"		[strict(2)]
+	                | "STRING" AExp Id   "SPACE INTO" Id "END-STRING"		[strict(1)]				
 
-				//STRING SPLIT
-                | "UNSTRING" AExp "DELIMITED BY SPACE INTO" Ids  "END-UNSTRING" 	[strict(1)]
+			//STRING SPLIT
+            | "UNSTRING" AExp "DELIMITED BY SPACE INTO" Ids  "END-UNSTRING" 	[strict(1)]
 
 
 
@@ -81,10 +95,18 @@ module IMP-SYNTAX
 	//                              LOOP STATEMENT 
 	////////////////////////////////////////////////////////////////////////////
 
-	            //LOOPS
-	            | "PERFORM" AExp AExp "TIMES" 				[strict(1,2)]
+            //PERFORM TIMES
+            | "PERFORM" AExp AExp "TIMES" 	
 
-                > Stmt Stmt   [left]
+            //PERFORM VARYING
+            | "PERFORM" AExp "VARYING" Id "FROM" AExp "BY" AExp "UNTIL" Id "=" AExp
+
+            		//INTERMEDIATE RULES
+            		| "PERFORM" AExp "VARYING" Id "BY" AExp "UNTIL" AExp
+ 
+
+
+            > Stmt Stmt   [left]
 
   	syntax Ids    ::= List{Id,","}			[seqstrict]
   	syntax AExps  ::= List{AExp, ","}       [seqstrict]
@@ -93,9 +115,13 @@ endmodule
 
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//
 //
 //                             SEMANTIC MODULE 
 //
+//
+////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 
@@ -105,17 +131,19 @@ module IMP
 
   	syntax KResult ::= Int | Bool | String
 
+  	//syntax K ::= "search" "(" Stmt ")" [function]
+  	//rule search(Statement:Stmt PGM) => #if isBuiltin(Statement) #then search(PGM) #else search(PGM) #fi
+  	//rule search(Statement:Stmt) => .K
+
   	configuration
 		<T>
+			//<k> search($PGM) ~> $PGM:K </k>
 			<k> $PGM:K </k>
 			<env> .Map </env> 
 			<store> .Map </store>
 			<block> .Map </block>
-			<streams >
-				<in stream="stdin"> .List </in>
-				<out stream="stdout"> .List </out> 
-			</streams>
 		</T>
+
 
 	/////////////////////////////////////////////////////////////////////////////
 	//                        <env> & <store> BEHAVIOR
@@ -196,9 +224,7 @@ module IMP
 	//BLOCK MANAGEMENT
 	rule { } => .   							[structural]
 	rule {S} => S  								[structural]
-	rule L : { } => . 							[structural]
-	rule <k> L : {S} => S ...</k>
-		<block> Rho:Map => Rho[L <- S]</block>	
+	rule L:String :{ } => . 					[structural]
 
 	//STATEMENT MANAGEMENT
     rule S1:Stmt S2:Stmt => S1 ~> S2    [structural]
@@ -211,10 +237,14 @@ module IMP
 
 
 
-	////////////////////////////////////////////////////////////////////////////
-	//                              STRING RULES 
-	////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//
+//                              STRING RULES 
+//
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 
 	//////////////////////////////////////////
@@ -327,24 +357,96 @@ module IMP
 		//until it's reached the last word of the string
 		when findChar(S1, " ", 0) =/=Int -1
 
-	//base case: it's reached the last word of the string
-    rule <k> UNSTRING S1:String DELIMITED BY SPACE INTO X:Id, VarList:Ids END-UNSTRING => .K ... </k>
-    	<env>... X |-> N ...</env>
-    	//save the last word
-		<store>... N |-> (_ => S1) ...</store> 
-		when findChar(S1, " ", 0) ==Int -1
+				//base case: it's reached the last word of the string
+			    rule <k> UNSTRING S1:String DELIMITED BY SPACE INTO X:Id, VarList:Ids END-UNSTRING => .K ... </k>
+			    	<env>... X |-> N ...</env>
+			    	//save the last word
+					<store>... N |-> (_ => S1) ...</store> 
+					when findChar(S1, " ", 0) ==Int -1
 
-	//base case: there are no variables left in the list
-	rule UNSTRING S1:String DELIMITED BY SPACE INTO .Ids END-UNSTRING => .K
-
-
+				//base case: there are no variables left in the list
+				rule UNSTRING S1:String DELIMITED BY SPACE INTO .Ids END-UNSTRING => .K
 
 
-	////////////////////////////////////////////////////////////////////////////
-	//                              LOOP RULES
-	////////////////////////////////////////////////////////////////////////////
 
-	rule <k> PERFORM LBL:String N:Int TIMES => STM ...</k>
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//
+//                              LOOP RULES
+//
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+	///////////////////////////////////////
+	//			BLOCK CONTROL	
+	///////////////////////////////////////
+
+
+	rule <k> L:String :{S} => S ...</k>
+
+		//<pgm>... LBL:String :{STM} => .K ...</pgm>
+		//<block> Rho:Map => Rho[L <- S]</block>
+		when L ==String "START"
+
+	rule <k> L:String :{S} => S ...</k>
+		<block> Rho:Map => Rho[L <- S]</block>
+		when L =/=String "START"	
+
+
+
+	///////////////////////////////////////
+	//			PERFORM TIMES	
+	///////////////////////////////////////
+
+	//Recursive rule
+	rule <k> PERFORM LBL:String N:Int TIMES => STM PERFORM LBL N-Int 1 TIMES ...</k>
 		<block>... LBL |-> STM ...</block>
+		when N =/=Int 0
+
+				//base case
+				rule <k> PERFORM LBL:String N:Int TIMES => .K ...</k>
+					when N ==Int 0
+
+	///////////////////////////////////////
+	//			PERFORM VARYING	
+	///////////////////////////////////////
+
+	//starting rule
+	rule <k> PERFORM Lbl:String VARYING Var:Id FROM StartValue:Int BY Increment:Int UNTIL Var:Id = EndValue:Int => 
+			 PERFORM Lbl VARYING Var BY Increment UNTIL EndValue </k>
+
+		<env>... Var |-> N ...</env>
+		<store>... N |-> (VarValue => StartValue) ...</store> 
+
+		when ((VarValue +Int Increment) <=Int EndValue) andBool Increment =/=Int 0
+
+				//starting rule case base
+				rule <k> PERFORM Lbl:String VARYING Var:Id FROM StartValue:Int BY Increment:Int UNTIL Var:Id = EndValue:Int => .K ...</k>
+
+					<env>... Var |-> N ...</env>
+					<store>... N |-> VarValue ...</store> 
+
+					when ((VarValue +Int Increment) >Int EndValue) andBool Increment ==Int 0
+
+				//recursive rule
+				rule <k> PERFORM Lbl:String VARYING Var:Id BY Increment:Int UNTIL EndValue:Int => 
+						 STM PERFORM Lbl VARYING Var BY Increment UNTIL EndValue </k>
+
+					<block>... LBL |-> STM ...</block>
+					<env>... Var |-> N ...</env>
+					<store>... N |-> (VarValue => VarValue +Int Increment) ...</store>
+
+					when (VarValue +Int Increment) <=Int EndValue
+
+				//base case
+				rule <k> PERFORM Lbl:String VARYING Var:Id BY Increment:Int UNTIL EndValue:Int => .K </k>
+
+					<env>... Var |-> N ...</env>
+					<store>... N |-> VarValue ...</store> 
+
+					when (VarValue +Int Increment) >Int EndValue
 
 endmodule
